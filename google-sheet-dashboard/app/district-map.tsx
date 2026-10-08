@@ -14,13 +14,12 @@ const normalize = (name: string) => {
 
 const outlineByKey = new Map(outlines.map((o) => [normalize(o.name), o]));
 
-// Districts too small for a label inside the shape: the label is placed at
-// this point (map units), to the east of both, with a line back to the district.
-const CALLOUTS: Record<string, { x: number; y: number }> = {
-  medchalmalkajgiri: { x: 850, y: 1050 },
-  hyderabad: { x: 850, y: 1150 },
+// Vertical label shifts (map units) that keep Hyderabad's label and its
+// northern neighbour's from landing on each other.
+const LABEL_NUDGE: Record<string, number> = {
+  medchalmalkajgiri: -18,
+  hyderabad: 10,
 };
-const CALLOUT_WIDTH = 240;
 
 export function hasOutline(district: string) {
   return outlineByKey.has(normalize(district));
@@ -51,14 +50,6 @@ export default function DistrictMap({
       const [x, y] = point.split(",").map(Number);
       xs.push(x);
       ys.push(y);
-    }
-  }
-  // Keep callout labels inside the viewBox.
-  for (const { district } of shown) {
-    const callout = CALLOUTS[normalize(district)];
-    if (callout) {
-      xs.push(callout.x + CALLOUT_WIDTH);
-      ys.push(callout.y - 40, callout.y + 40);
     }
   }
   const pad = 20;
@@ -114,37 +105,9 @@ export default function DistrictMap({
         const fontSize = 22;
         const lineHeight = fontSize * 1.1;
         const countSize = fontSize * 1.35;
-        const callout = CALLOUTS[normalize(district)];
-        if (callout) {
-          return (
-            <g key={district} pointerEvents="none" aria-hidden>
-              <line
-                x1={callout.x - 10}
-                y1={callout.y}
-                x2={outline.cx}
-                y2={outline.cy}
-                stroke="#111"
-                strokeWidth={1.5}
-              />
-              <circle cx={outline.cx} cy={outline.cy} r={5} fill="#111" />
-              <text fontSize={fontSize} fill="#111">
-                <tspan x={callout.x} y={callout.y - 6}>
-                  {district}
-                </tspan>
-                <tspan
-                  x={callout.x}
-                  y={callout.y - 6 + countSize}
-                  fontSize={countSize}
-                  fontWeight={600}
-                >
-                  {count}
-                </tspan>
-              </text>
-            </g>
-          );
-        }
         const top =
-          outline.cy -
+          outline.cy +
+          (LABEL_NUDGE[normalize(district)] ?? 0) -
           (words.length * lineHeight + countSize) / 2 +
           fontSize * 0.8;
         return (
