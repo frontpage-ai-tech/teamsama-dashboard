@@ -7,6 +7,8 @@ const DISTRICT_COLUMN = "District";
 const MANDAL_COLUMN = "Mandal";
 const ELIGIBILITY_COLUMN = "Eligibility";
 const ELIGIBLE_VALUE = "eligible";
+const STATUS_COLUMN = "Status";
+const SUBMITTED_VALUE = "submitted";
 
 function readCredentials() {
   const clientEmail = process.env.GOOGLE_CLIENT_EMAIL;
@@ -74,10 +76,14 @@ export async function GET() {
     const districtColumn = header.findIndex(
       (name) => name.trim() === DISTRICT_COLUMN,
     );
+    const statusColumn = header.findIndex(
+      (name) => name.trim() === STATUS_COLUMN,
+    );
     const missing = [
       districtColumn === -1 && DISTRICT_COLUMN,
       column === -1 && MANDAL_COLUMN,
       eligibilityColumn === -1 && ELIGIBILITY_COLUMN,
+      statusColumn === -1 && STATUS_COLUMN,
     ].filter(Boolean);
     if (missing.length > 0) {
       return Response.json(
@@ -88,7 +94,8 @@ export async function GET() {
 
     const rows = allRows.filter(
       (row) =>
-        (row[eligibilityColumn] ?? "").trim().toLowerCase() === ELIGIBLE_VALUE,
+        (row[eligibilityColumn] ?? "").trim().toLowerCase() === ELIGIBLE_VALUE &&
+        (row[statusColumn] ?? "").trim().toLowerCase() === SUBMITTED_VALUE,
     );
 
     // Group case-insensitively, keeping the first spelling seen as the label.
