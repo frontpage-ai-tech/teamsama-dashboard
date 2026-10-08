@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "google-sheet-dashboard",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "google-sheet-dashboard", "run", "dev", "--", "-p", "3099"],
+      "port": 3099
+    }
+  ]
+}
