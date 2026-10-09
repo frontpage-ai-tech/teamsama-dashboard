@@ -64,7 +64,7 @@ export default function DistrictMap({
     <svg
       viewBox={`${minX} ${minY} ${width} ${height}`}
       role="group"
-      aria-label="Districts with submitted applications"
+      aria-label="District map"
       className="w-full"
     >
       {shown.map(({ district, count, outline }) => {

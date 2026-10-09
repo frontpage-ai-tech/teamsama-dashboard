@@ -12,6 +12,12 @@
   --font-mono: var(--font-geist-mono);
 }
 
+/* Always show the page scrollbar so centred content doesn't shift when a
+   long table makes the page scroll. */
+html {
+  overflow-y: scroll;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
