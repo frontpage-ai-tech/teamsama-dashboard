@@ -8,47 +8,67 @@ export async function GET() {
 
   return sheetResponse(
     SHEET_TAB,
-    ["District", "Mandal", "Volunteer Name", "Volunteer Mobile"],
+    ["District", "Mandal", "Volunteer", "Yesterday", "Today", "Total"],
     (allRows, column) => {
       const rows = allRows.filter((row) => (row[column.Mandal] ?? "").trim());
+      const number = (value: string | undefined) => Number(value) || 0;
 
-      type Mandal = { mandal: string; volunteer: string; mobile: string };
-      type District = { district: string; assigned: number; mandals: Mandal[] };
+      type Counts = { yesterday: number; today: number; total: number };
+      type Mandal = Counts & { mandal: string; volunteer: string };
+      type District = Counts & {
+        district: string;
+        assigned: number;
+        mandals: Mandal[];
+      };
 
       // Group case-insensitively, keeping the first spelling seen as the label.
       const districts = new Map<string, District>();
+      const totals = { yesterday: 0, today: 0, total: 0, assigned: 0 };
       for (const row of rows) {
         const name = (row[column.District] ?? "").trim() || "(blank)";
         const key = name.toLowerCase();
         let district = districts.get(key);
         if (!district) {
-          districts.set(key, (district = { district: name, assigned: 0, mandals: [] }));
+          district = {
+            district: name,
+            yesterday: 0,
+            today: 0,
+            total: 0,
+            assigned: 0,
+            mandals: [],
+          };
+          districts.set(key, district);
         }
-        const volunteer = (row[column["Volunteer Name"]] ?? "").trim();
-        if (volunteer) district.assigned += 1;
-        district.mandals.push({
+
+        const mandal = {
           mandal: row[column.Mandal].trim(),
-          volunteer,
-          mobile: (row[column["Volunteer Mobile"]] ?? "").trim(),
-        });
+          volunteer: (row[column.Volunteer] ?? "").trim(),
+          yesterday: number(row[column.Yesterday]),
+          today: number(row[column.Today]),
+          total: number(row[column.Total]),
+        };
+        district.mandals.push(mandal);
+        for (const group of [district, totals]) {
+          group.yesterday += mandal.yesterday;
+          group.today += mandal.today;
+          group.total += mandal.total;
+          if (mandal.volunteer) group.assigned += 1;
+        }
       }
 
-      const list = [...districts.values()]
-        .map((district) => ({
-          ...district,
-          count: district.mandals.length,
-          mandals: district.mandals.sort((a, b) =>
-            a.mandal.localeCompare(b.mandal),
-          ),
-        }))
-        .sort(
-          (a, b) => b.count - a.count || a.district.localeCompare(b.district),
-        );
+      const byTotal = <T extends Counts>(nameOf: (item: T) => string) =>
+        (a: T, b: T) =>
+          b.total - a.total || nameOf(a).localeCompare(nameOf(b));
 
       return {
-        districts: list,
-        total: rows.length,
-        assigned: list.reduce((sum, district) => sum + district.assigned, 0),
+        districts: [...districts.values()]
+          .map((district) => ({
+            ...district,
+            mandals: district.mandals.sort(byTotal((m) => m.mandal)),
+          }))
+          .sort(byTotal((d) => d.district)),
+        mandalCount: rows.length,
+        ...totals,
       };
     },
     { cache: false },

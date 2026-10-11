@@ -106,9 +106,7 @@ export default function Home() {
         hidden={activeTab !== "volunteers"}
         className="max-w-full"
       >
-        {volunteers && (
-          <VolunteersView data={volunteers} applications={applications} />
-        )}
+        {volunteers && <VolunteersView data={volunteers} />}
       </div>
     </main>
   );
