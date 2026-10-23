@@ -1,8 +1,9 @@
 import type { ApplicationsData } from "@/app/applications-view";
+import type { ConstituenciesData } from "@/app/constituencies-view";
 import type { VolunteersData } from "@/app/volunteers-view";
 
 // Every application count on the dashboard is shown multiplied by this.
-export const COUNT_MULTIPLIER = 4;
+export const COUNT_MULTIPLIER = 1;
 
 const scale = (count: number) => count * COUNT_MULTIPLIER;
 
@@ -37,6 +38,19 @@ export function scaleVolunteers(data: VolunteersData): VolunteersData {
     districts: data.districts.map((district) => ({
       ...counts(district),
       mandals: district.mandals.map(counts),
+    })),
+  };
+}
+
+export function scaleConstituencies(
+  data: ConstituenciesData,
+): ConstituenciesData {
+  return {
+    ...data,
+    total: scale(data.total),
+    constituencies: data.constituencies.map((item) => ({
+      ...item,
+      count: scale(item.count),
     })),
   };
 }

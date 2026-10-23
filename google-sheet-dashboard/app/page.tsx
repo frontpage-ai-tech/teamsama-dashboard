@@ -2,11 +2,19 @@
 
 import { useState } from "react";
 import ApplicationsView, { type ApplicationsData } from "./applications-view";
+import ConstituenciesView, {
+  type ConstituenciesData,
+} from "./constituencies-view";
 import VolunteersView, { type VolunteersData } from "./volunteers-view";
-import { scaleApplications, scaleVolunteers } from "@/lib/display";
+import {
+  scaleApplications,
+  scaleConstituencies,
+  scaleVolunteers,
+} from "@/lib/display";
 
 const TABS = [
-  { id: "applications", label: "Applications" },
+  { id: "constituencies", label: "Applications by Constituency" },
+  { id: "applications", label: "Applications by Mandal" },
   { id: "volunteers", label: "Mandal Volunteers" },
 ];
 
@@ -20,6 +28,8 @@ async function fetchJson<T>(url: string): Promise<T> {
 export default function Home() {
   const [activeTab, setActiveTab] = useState(TABS[0].id);
   const [applications, setApplications] = useState<ApplicationsData | null>(null);
+  const [constituencies, setConstituencies] =
+    useState<ConstituenciesData | null>(null);
   const [volunteers, setVolunteers] = useState<VolunteersData | null>(null);
   const [errors, setErrors] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
@@ -27,17 +37,26 @@ export default function Home() {
   async function refreshData() {
     setLoading(true);
     setErrors([]);
-    const [applicationsResult, volunteersResult] = await Promise.allSettled([
-      fetchJson<ApplicationsData>("/api/sheet"),
-      fetchJson<VolunteersData>("/api/volunteers"),
-    ]);
+    const [applicationsResult, constituenciesResult, volunteersResult] =
+      await Promise.allSettled([
+        fetchJson<ApplicationsData>("/api/sheet"),
+        fetchJson<ConstituenciesData>("/api/constituencies"),
+        fetchJson<VolunteersData>("/api/volunteers"),
+      ]);
     if (applicationsResult.status === "fulfilled") {
       setApplications(scaleApplications(applicationsResult.value));
+    }
+    if (constituenciesResult.status === "fulfilled") {
+      setConstituencies(scaleConstituencies(constituenciesResult.value));
     }
     if (volunteersResult.status === "fulfilled") {
       setVolunteers(scaleVolunteers(volunteersResult.value));
     }
-    const failures = [applicationsResult, volunteersResult].flatMap((result) =>
+    const failures = [
+      applicationsResult,
+      constituenciesResult,
+      volunteersResult,
+    ].flatMap((result) =>
       result.status === "rejected"
         ? [
             result.reason instanceof Error
@@ -90,7 +109,16 @@ export default function Home() {
         </p>
       ))}
 
-      {/* Both panels stay mounted so each keeps its open district when switching tabs. */}
+      {/* Panels stay mounted so each keeps its open district when switching tabs. */}
+      <div
+        role="tabpanel"
+        id="panel-constituencies"
+        aria-labelledby="tab-constituencies"
+        hidden={activeTab !== "constituencies"}
+        className="max-w-full"
+      >
+        {constituencies && <ConstituenciesView data={constituencies} />}
+      </div>
       <div
         role="tabpanel"
         id="panel-applications"
