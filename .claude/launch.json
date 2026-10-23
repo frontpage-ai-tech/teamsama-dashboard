@@ -4,8 +4,30 @@
     {
       "name": "google-sheet-dashboard",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["--prefix", "google-sheet-dashboard", "run", "dev", "--", "-p", "3099"],
+      "runtimeArgs": [
+        "--prefix",
+        "google-sheet-dashboard",
+        "run",
+        "dev",
+        "--",
+        "-p",
+        "3099"
+      ],
       "port": 3099
+    },
+    {
+      "name": "teamsama-search",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "--prefix",
+        "D:/TeamSama-Search",
+        "run",
+        "dev",
+        "--",
+        "-p",
+        "3100"
+      ],
+      "port": 3100
     }
   ]
 }

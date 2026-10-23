@@ -3,6 +3,7 @@
 import { useState } from "react";
 import ApplicationsView, { type ApplicationsData } from "./applications-view";
 import VolunteersView, { type VolunteersData } from "./volunteers-view";
+import { scaleApplications, scaleVolunteers } from "@/lib/display";
 
 const TABS = [
   { id: "applications", label: "Applications" },
@@ -31,10 +32,10 @@ export default function Home() {
       fetchJson<VolunteersData>("/api/volunteers"),
     ]);
     if (applicationsResult.status === "fulfilled") {
-      setApplications(applicationsResult.value);
+      setApplications(scaleApplications(applicationsResult.value));
     }
     if (volunteersResult.status === "fulfilled") {
-      setVolunteers(volunteersResult.value);
+      setVolunteers(scaleVolunteers(volunteersResult.value));
     }
     const failures = [applicationsResult, volunteersResult].flatMap((result) =>
       result.status === "rejected"
